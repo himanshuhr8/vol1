@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StreamType {
+  Youtube
+  Spotify
+}
+
+enum Provider {
+  Google
+  Github
+}
+
+model User {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  provider Provider
+  streams  Stream[]
+  upvotes  Upvote[]
+}
+
+model Stream {
+  id               String            @id @default(cuid())
+  userId           String
+  url              String
+  extractedId      String            @unique
+  title            String
+  smallImg         String
+  bigImg           String
+  type             StreamType
+  upvotes          Int               @default(0)
+  isPlayed         Boolean           @default(false)
+  user             User              @relation(fields: [userId], references: [id])
+  UpvoteList       Upvote[]
+  CurrentlyPlaying CurrentlyPlaying?
+}
+
+model Upvote {
+  id       String @id @default(cuid())
+  userId   String
+  streamId String
+  user     User   @relation(fields: [userId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, streamId])
+}
+
+model CurrentlyPlaying {
+  id        String   @id @default(cuid())
+  streamId  String   @unique
+  startedAt DateTime @default(now()) // To track when the song started
+  stream    Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+}
+
+model Played {
+  id       String     @id @default(cuid())
+  streamId String     @unique
+  title    String
+  userId   String
+  smallImg String
+  type     StreamType
+}
