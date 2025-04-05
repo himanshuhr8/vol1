@@ -20,10 +20,13 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!existingUser) {
-          await prismaClient.user.create({
-            data: { email: user.email, provider: "Google" },
+          existingUser = await prismaClient.user.create({
+            data: { email: user.email, provider: "Google", name: user.name! },
           });
         }
+
+        // 👇 Attach ID to user so jwt gets it
+        user.id = existingUser.id;
 
         return true;
       } catch (error) {
@@ -34,6 +37,7 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       if (session.user) {
+        session.user.id = token.id as string;
         session.user.email = token.email as string;
       }
       return session;
@@ -41,6 +45,7 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.email = user.email;
       }
       return token;

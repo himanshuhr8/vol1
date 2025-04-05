@@ -19,17 +19,24 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 
 interface CurrentlyPlaying {
-  extractedId: string;
+  id: string;
+  userId: string;
   title: string;
-  addedBy: string;
+  type: string;
+  smallImg: string;
   bigImg: string;
-  source: string;
+  extractedId: string;
+  upvotes: number;
+  isPlayed: boolean;
+  roomId: string;
+  user: {
+    name: string;
+  };
 }
 
 interface YouTubeAudioPlayerProps {
   currentlyPlaying: CurrentlyPlaying;
 }
-
 declare global {
   interface Window {
     YT: any;
@@ -37,8 +44,10 @@ declare global {
   }
 }
 
-const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = () => {
-  const { currentlyPlaying, setCurrentlyPlaying } = useMusicStore();
+const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
+  currentlyPlaying,
+}) => {
+  // const { currentlyPlaying, setCurrentlyPlaying } = useMusicStore();
   const [player, setPlayer] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
@@ -52,10 +61,11 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = () => {
       const res = await fetch("/api/streams/currently-playing");
       if (res.ok) {
         const data = await res.json();
-        setCurrentlyPlaying(data.song);
+        // setCurrentlyPlaying(data.song);
       }
     }
-    fetchCurrentlyPlaying();
+    // fetchCurrentlyPlaying();
+
     if (!window.YT) {
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
@@ -74,7 +84,7 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = () => {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [setCurrentlyPlaying, currentlyPlaying?.extractedId]);
+  }, [currentlyPlaying?.extractedId]);
 
   const initializePlayer = (videoId: string) => {
     if (!window.YT || !videoId) return;
@@ -146,7 +156,7 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = () => {
     const res = await fetch("/api/streams/next-song", { method: "POST" });
     if (res.ok) {
       const data = await res.json();
-      setCurrentlyPlaying(data.song);
+      // setCurrentlyPlaying(data.song);
       window.location.reload();
     }
   }
@@ -164,7 +174,7 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = () => {
               className="rounded-lg shadow-lg object-cover"
             />
             <div className="absolute top-2 right-2">
-              {currentlyPlaying.source === "youtube" ? (
+              {currentlyPlaying.type === "youtube" ? (
                 <Badge className="bg-red-500 hover:bg-red-600">
                   <Youtube className="h-3 w-3 mr-1" />
                   YouTube

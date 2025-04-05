@@ -2,11 +2,18 @@ import { create } from "zustand";
 
 interface Song {
   id: string;
-  extractedId: string;
+  userId: string;
   title: string;
-  url: string;
-  source: string;
+  type: string;
+  smallImg: string;
   bigImg: string;
+  extractedId: string;
+  upvotes: number;
+  isPlayed: boolean;
+  roomId: string;
+  user: {
+    name: string;
+  };
 }
 
 interface StoreState {

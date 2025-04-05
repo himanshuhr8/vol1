@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -26,42 +20,76 @@ enum Provider {
 model User {
   id       String   @id @default(cuid())
   email    String   @unique
+  name     String
   provider Provider
-  streams  Stream[]
-  upvotes  Upvote[]
+
+  streams     Stream[]
+  upvotes     Upvote[]
+  joinedRooms RoomParticipant[]
+
+  ownedRoom   Room?   @relation("OwnedRoom")
+  ownedRoomId String? @unique
+}
+
+model Room {
+  id       String @id @default(cuid())
+  roomId   String @unique
+  roomName String
+  ownerId  String @unique @map("ownerId")
+
+  owner        User              @relation("OwnedRoom", fields: [ownerId], references: [id], onDelete: Cascade)
+  streams      Stream[]
+  participants RoomParticipant[]
+}
+
+model RoomParticipant {
+  id     String @id @default(cuid())
+  userId String
+  roomId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
 }
 
 model Stream {
-  id               String            @id @default(cuid())
-  userId           String
-  url              String
-  extractedId      String            @unique
-  title            String
-  smallImg         String
-  bigImg           String
-  type             StreamType
-  upvotes          Int               @default(0)
-  isPlayed         Boolean           @default(false)
-  user             User              @relation(fields: [userId], references: [id])
-  UpvoteList       Upvote[]
-  CurrentlyPlaying CurrentlyPlaying?
+  id          String     @id @default(cuid())
+  roomId      String
+  url         String
+  extractedId String     @unique
+  title       String
+  smallImg    String
+  bigImg      String
+  type        StreamType
+  upvotes     Int        @default(0)
+  isPlayed    Boolean    @default(false)
+
+  room   Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  upvoteList       Upvote[]
+  currentlyPlaying CurrentlyPlaying?
 }
 
 model Upvote {
   id       String @id @default(cuid())
   userId   String
   streamId String
-  user     User   @relation(fields: [userId], references: [id])
-  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   @@unique([userId, streamId])
 }
 
 model CurrentlyPlaying {
-  id        String   @id @default(cuid())
-  streamId  String   @unique
-  startedAt DateTime @default(now()) // To track when the song started
+  id       String @id @default(cuid())
+  streamId String @unique
+
   stream    Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  startedAt DateTime @default(now())
 }
 
 model Played {

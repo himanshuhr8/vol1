@@ -6,10 +6,43 @@ import { ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import axios from "axios";
 
+interface JoinRoomResponse {
+  room: {
+    id: string;
+    roomId: string;
+    roomName: string;
+    ownerId: string;
+  };
+}
+//for non authenticated users local storage can be done
 export default function JoinRoomPage() {
   const router = useRouter();
   const [roomCode, setRoomCode] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleJoinRoom = async () => {
+    if (!roomCode.trim()) return alert("Please enter a room code");
+
+    try {
+      setLoading(true);
+      const res = await axios.post<JoinRoomResponse>("/api/room/join", {
+        roomId: roomCode.trim(),
+        // nickname: nickname.trim() || undefined,
+      });
+
+      const { room } = res.data;
+      router.push(`/room/${room.roomId}`);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to join room");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-[100dvh] flex-col">
       <header className="px-4 py-4 flex justify-end">
@@ -32,14 +65,21 @@ export default function JoinRoomPage() {
                 className="text-center text-lg py-6"
               />
             </div>
+            <div className="space-y-2">
+              <Input
+                type="text"
+                placeholder="Enter your nickname (optional)"
+                onChange={(e) => setNickname(e.target.value)}
+                className="text-center py-4"
+              />
+            </div>
             <Button
               className="w-full"
               size="lg"
-              onClick={() => {
-                router.push(`/room/${roomCode}`);
-              }}
+              disabled={loading}
+              onClick={handleJoinRoom}
             >
-              Join Room
+              {loading ? "Joining..." : "Join Room"}
             </Button>
             <div className="text-center">
               <Link

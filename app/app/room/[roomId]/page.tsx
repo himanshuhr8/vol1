@@ -4,9 +4,9 @@ import type React from "react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { useTheme } from "next-themes";
-import { useMusicStore } from "@/store/currentSong";
 import { useRefreshStore } from "@/store/atoms";
+import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 import {
   Music,
   Users,
@@ -27,6 +27,7 @@ import {
   ExternalLink,
   Heart,
   Share2,
+  ThumbsDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -54,93 +55,26 @@ import { Label } from "@/components/ui/label";
 import useStreams from "@/app/hooks/useStreams";
 import YouTubeAudioPlayer from "@/app/components/dashboard/YouTubeAudio";
 import { usePlayedSongs } from "@/app/hooks/usePlayedSongs";
-
-// Dummy data for the room
-const roomData = {
-  id: "music-123",
-  name: "Friday Night Vibes",
-  createdBy: "Alex",
-  participants: [
-    { id: 1, name: "Alex", avatar: "/placeholder.svg?height=40&width=40" },
-    { id: 2, name: "Jamie", avatar: "/placeholder.svg?height=40&width=40" },
-    { id: 3, name: "Taylor", avatar: "/placeholder.svg?height=40&width=40" },
-    { id: 4, name: "Jordan", avatar: "/placeholder.svg?height=40&width=40" },
-    { id: 5, name: "Casey", avatar: "/placeholder.svg?height=40&width=40" },
-    { id: 6, name: "Riley", avatar: "/placeholder.svg?height=40&width=40" },
-    { id: 7, name: "Morgan", avatar: "/placeholder.svg?height=40&width=40" },
-    { id: 8, name: "Quinn", avatar: "/placeholder.svg?height=40&width=40" },
-  ],
-  currentlyPlaying: {
-    extractedId: "5Eqb_-j3FDA",
-    title: "Coke Studio | Season 14 | Pasoori | Ali Sethi x Shae Gill",
-    // artist: "Daft Punk ft. Pharrell Williams",
-    // duration: "6:07",
-    // currentTime: "2:30",
-    bigImg: "https://i.ytimg.com/vi/5Eqb_-j3FDA/maxresdefault.jpg",
-    addedBy: "Alex",
-    source: "youtube",
-  },
-  messages: [
-    { id: 1, user: "System", message: "Room created", time: "19:30" },
-    {
-      id: 2,
-      user: "Alex",
-      message: "Hey everyone! Welcome to the room",
-      time: "19:31",
-    },
-    { id: 3, user: "Jamie", message: "Great playlist so far!", time: "19:35" },
-    {
-      id: 4,
-      user: "Taylor",
-      message: "Can we add some Billie Eilish?",
-      time: "19:40",
-    },
-    {
-      id: 5,
-      user: "System",
-      message: "Taylor added 'Billie Eilish - bad guy'",
-      time: "19:41",
-    },
-    { id: 6, user: "Jordan", message: "Nice choice!", time: "19:42" },
-    { id: 7, user: "Casey", message: "I'm loving this song", time: "19:45" },
-    {
-      id: 8,
-      user: "Riley",
-      message: "Who added Daft Punk? Great taste!",
-      time: "19:50",
-    },
-    {
-      id: 9,
-      user: "Alex",
-      message: "That was me! One of my favorites",
-      time: "19:51",
-    },
-    {
-      id: 10,
-      user: "Morgan",
-      message: "Can we add some The Weeknd next?",
-      time: "19:55",
-    },
-  ],
-};
-
-// Dummy data for the queue
+import { useRoomDetails } from "@/app/hooks/useRoomDetails";
 
 export default function RoomDashboard() {
-  const creatorId = "cm8sfqxnz0000qvzkw7ur8uof";
-  const [newMessage, setNewMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const params = useParams();
+  const { data: session, status } = useSession();
 
+  const roomId = params.roomId as string;
+  const userId = session?.user?.id ?? "";
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [newSongUrl, setNewSongUrl] = useState("");
   const [newSongSource, setNewSongSource] = useState<"youtube" | "spotify">(
     "youtube"
   );
   const [isAddingSong, setIsAddingSong] = useState(false);
   const [isHistory, setIsHistory] = useState(false);
+
   const addSongInputRef = useRef<HTMLInputElement>(null);
   const incrementKey = useRefreshStore((state) => state.incrementKey);
 
-  // Focus input when add song modal opens
   useEffect(() => {
     if (isAddingSong && addSongInputRef.current) {
       setTimeout(() => {
@@ -149,10 +83,19 @@ export default function RoomDashboard() {
     }
   }, [isAddingSong]);
 
-  const { streams, upVotedSongs, loading, error } = useStreams(creatorId);
+  const { streams, upVotedSongs, loading, error } = useStreams(roomId, userId);
+  const currentlyPlaying = streams.length > 0 ? streams[0] : null;
+  const queue = streams.slice(1);
+  console.log({ cur: currentlyPlaying });
+  console.log(queue);
+  const { roomDetails } = useRoomDetails(roomId);
 
   const playedSongs = usePlayedSongs();
   const historySongs = playedSongs.playedSongs;
+
+  // 🔁 Now conditionally render AFTER hooks
+  if (status === "loading") return <p>Loading...</p>;
+  if (!session) return <p>You are not signed in</p>;
 
   // Handle voting
   const handleVote = async (songId: string) => {
@@ -173,8 +116,9 @@ export default function RoomDashboard() {
   const handleAddSong = async () => {
     if (!newSongUrl.trim()) return;
     const payload = {
-      creatorId,
+      userId: userId,
       url: newSongUrl,
+      roomId: roomId,
     };
     try {
       const res = await axios.post("/api/streams", payload);
@@ -189,16 +133,7 @@ export default function RoomDashboard() {
     setIsHistory(true);
     incrementKey(); // Refresh streams after closing history
   };
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
 
-    // In a real app, you would send this to your backend
-    console.log("Sending message:", newMessage);
-
-    // Clear the input
-    setNewMessage("");
-  };
   const handleReplaySong = async (streamId: string) => {
     try {
       const response = await axios.post("/api/streams/replay-song", {
@@ -215,7 +150,7 @@ export default function RoomDashboard() {
     }
   };
 
-  const filteredSongs = streams;
+  const filteredSongs = queue;
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
@@ -229,7 +164,7 @@ export default function RoomDashboard() {
             MusicRoom
           </Link>
           <Badge variant="outline" className="ml-2">
-            {roomData.name}
+            {roomDetails?.roomName}
           </Badge>
         </div>
 
@@ -240,7 +175,7 @@ export default function RoomDashboard() {
                 <Button variant="ghost" size="icon" className="relative">
                   <Users className="h-5 w-5" />
                   <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {roomData.participants.length}
+                    {roomDetails?.participantCount}
                   </span>
                 </Button>
               </TooltipTrigger>
@@ -264,11 +199,7 @@ export default function RoomDashboard() {
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Room Code</p>
                   <div className="flex">
-                    <Input
-                      readOnly
-                      value={roomData.id}
-                      className="rounded-r-none"
-                    />
+                    <Input readOnly value={roomId} className="rounded-r-none" />
                     <Button variant="secondary" className="rounded-l-none">
                       Copy
                     </Button>
@@ -279,7 +210,7 @@ export default function RoomDashboard() {
                   <div className="flex">
                     <Input
                       readOnly
-                      value={`https://musicroom.app/room/${roomData.id}`}
+                      value={`https://musicroom.app/room/${roomId}`}
                       className="rounded-r-none"
                     />
                     <Button variant="secondary" className="rounded-l-none">
@@ -352,7 +283,7 @@ export default function RoomDashboard() {
         {/* Main Player and Queue */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Currently Playing */}
-          <YouTubeAudioPlayer currentlyPlaying={roomData.currentlyPlaying} />
+          <YouTubeAudioPlayer currentlyPlaying={currentlyPlaying!} />
 
           {/* Queue and Chat Tabs */}
           <div className="flex-1 overflow-hidden">
@@ -364,12 +295,6 @@ export default function RoomDashboard() {
                     className="data-[state=active]:bg-transparent"
                   >
                     Queue
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="chat"
-                    className="data-[state=active]:bg-transparent"
-                  >
-                    Chat
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -619,7 +544,7 @@ export default function RoomDashboard() {
                           : "No songs in the queue"}
                       </p>
                     ) : (
-                      streams.map((song) => (
+                      queue.map((song) => (
                         <div
                           key={song.id}
                           className="flex items-center gap-3 p-3 bg-card rounded-lg border hover:bg-accent/50 transition-colors"
@@ -636,11 +561,8 @@ export default function RoomDashboard() {
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{song.title}</p>
                             <div className="flex items-center text-xs text-muted-foreground">
-                              {/* <span>{song.artist}</span> */}
                               <span className="mx-1">•</span>
-                              {/* <span>{song.duration}</span> */}
-                              <span className="mx-1">•</span>
-                              <span>Added by {song.userId}</span>
+                              <span>Added by {song.user.name}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -660,16 +582,17 @@ export default function RoomDashboard() {
                               size="sm"
                               className="gap-1"
                               onClick={() => handleVote(song.id)}
-                              disabled={loading} // Disable when loading
+                              disabled={loading}
                             >
                               {upVotedSongs?.some(
                                 (upvote) => upvote.streamId === song.id
-                              )
-                                ? "Voted"
-                                : "Vote"}
+                              ) ? (
+                                <ThumbsDown className="h-3 w-3" />
+                              ) : (
+                                <ThumbsUp className="h-3 w-3" />
+                              )}
 
-                              <ThumbsUp className="h-3 w-3" />
-                              {/* <span>{song.votes}</span> */}
+                              <span>{song.upvotes}</span>
                             </Button>
                           </div>
                         </div>
@@ -678,64 +601,12 @@ export default function RoomDashboard() {
                   </div>
                 </div>
               </TabsContent>
-
-              {/*chat section*/}
-              <TabsContent
-                value="chat"
-                className="flex-1 overflow-hidden flex flex-col p-0 m-0 data-[state=inactive]:hidden"
-              >
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-3">
-                    {roomData.messages.map((message) => (
-                      <div key={message.id} className="flex gap-2">
-                        {message.user === "System" ? (
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Music className="h-4 w-4 text-primary" />
-                          </div>
-                        ) : (
-                          <Avatar className="w-8 h-8">
-                            <AvatarFallback>
-                              {message.user.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`font-medium ${message.user === "System" ? "text-primary" : ""}`}
-                            >
-                              {message.user}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {message.time}
-                            </span>
-                          </div>
-                          <p className="text-sm">{message.message}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-4 border-t">
-                  <form onSubmit={handleSendMessage} className="flex gap-2">
-                    <Input
-                      placeholder="Type a message..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                    />
-                    <Button type="submit">
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </form>
-                </div>
-              </TabsContent>
             </Tabs>
           </div>
         </div>
 
         {/* Participants Sidebar (hidden on mobile) */}
-        <div className="w-64 border-l hidden lg:block overflow-y-auto">
+        {/* <div className="w-64 border-l hidden lg:block overflow-y-auto">
           <div className="p-4 border-b">
             <h3 className="font-medium">
               Participants ({roomData.participants.length})
@@ -763,7 +634,7 @@ export default function RoomDashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

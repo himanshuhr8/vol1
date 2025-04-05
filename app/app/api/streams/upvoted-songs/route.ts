@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
         userId: creatorId ?? "",
       },
     });
-    return NextResponse.json({ upVotedStreams });
+    return NextResponse.json({ upVoted: upVotedStreams });
   } catch (e) {
     return NextResponse.json(
       { error: "Error while fetching streams" },

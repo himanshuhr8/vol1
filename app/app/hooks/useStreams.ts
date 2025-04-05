@@ -13,6 +13,10 @@ interface Stream {
   extractedId: string;
   upvotes: number;
   isPlayed: boolean;
+  roomId: string;
+  user: {
+    name: string;
+  };
 }
 
 interface UpvotedSong {
@@ -28,7 +32,10 @@ interface UseStreamsReturn {
   error: string | null;
 }
 
-export default function useStreams(userId: string): UseStreamsReturn {
+export default function useStreams(
+  roomId: string,
+  userId: string
+): UseStreamsReturn {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [upVotedSongs, setUpVotedSongs] = useState<UpvotedSong[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,7 +54,7 @@ export default function useStreams(userId: string): UseStreamsReturn {
         // Fetch streams and upvoted songs in parallel
         const [streamsRes, upVotedRes] = await Promise.all([
           axios.get<{ streams: Stream[] }>("/api/streams", {
-            params: { creatorId: userId },
+            params: { roomId: roomId },
           }),
           axios.get<{ upVoted: UpvotedSong[] }>("/api/streams/upvoted-songs", {
             params: { creatorId: userId },

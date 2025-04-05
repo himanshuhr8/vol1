@@ -10,7 +10,8 @@ var YT_REGEX =
   /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 
 const CreateStreamSchema = z.object({
-  creatorId: z.string(),
+  userId: z.string(),
+  roomId: z.string(),
   url: z.string(),
 });
 
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
         { status: 411 }
       );
     }
-    const { creatorId, url } = data.data;
+    const { userId, url, roomId } = data.data;
     const isYtUrl = url.match(YT_REGEX);
     if (!isYtUrl) {
       return NextResponse.json(
@@ -32,16 +33,30 @@ export async function POST(req: NextRequest) {
       );
     }
     const extractedId = url.split("?v=")[1];
+
     const res = await youtubesearchapi.GetVideoDetails(extractedId);
-    // console.log(res.thumbnail.thumbnails);
+    // console.log(res);
+    console.log(res.thumbnail.thumbnails);
     const thumbnails = res.thumbnail.thumbnails;
     thumbnails.sort((a: { width: number }, b: { width: number }) =>
       a.width < a.width ? -1 : 1
     );
     // console.log(thumbnails);
+    const id = await prismaClient.room.findFirst({
+      where: {
+        roomId: roomId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (!id) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
     const stream = await prismaClient.stream.create({
       data: {
-        userId: creatorId,
+        userId: userId,
+        roomId: id.id,
         url: url,
         title: res.title ?? "It broke sadly :(",
         extractedId: extractedId,
@@ -62,20 +77,48 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
 export async function GET(req: NextRequest) {
   try {
-    const creatorId = req.nextUrl.searchParams.get("creatorId");
-    const streams = await prismaClient.stream.findMany({
+    const roomIdParam = req.nextUrl.searchParams.get("roomId");
+
+    if (!roomIdParam) {
+      return NextResponse.json({ error: "Missing roomId" }, { status: 400 });
+    }
+
+    const id = await prismaClient.room.findFirst({
       where: {
-        userId: creatorId ?? "",
-        isPlayed: false,
+        roomId: roomIdParam,
+      },
+      select: {
+        id: true,
       },
     });
+
+    if (!id) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    const streams = await prismaClient.stream.findMany({
+      where: {
+        roomId: id.id,
+        isPlayed: false,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json({ streams });
   } catch (e) {
+    console.error(e);
     return NextResponse.json(
       { error: "Error while fetching streams" },
-      { status: 411 }
+      { status: 500 }
     );
   }
 }
