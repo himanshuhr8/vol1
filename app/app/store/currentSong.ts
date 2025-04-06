@@ -14,6 +14,9 @@ interface Song {
   user: {
     name: string;
   };
+  room: {
+    ownerId: string;
+  };
 }
 
 interface StoreState {

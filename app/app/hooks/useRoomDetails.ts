@@ -1,9 +1,9 @@
-// hooks/useRoomDetails.ts
 import { useEffect, useState } from "react";
 
 interface RoomDetails {
   roomName: string;
   participantCount: number;
+  roomOwner: string;
 }
 
 export function useRoomDetails(roomId: string | undefined) {
@@ -12,7 +12,10 @@ export function useRoomDetails(roomId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId) {
+      setRoomDetails(null);
+      return;
+    }
 
     const fetchRoomDetails = async () => {
       setLoading(true);
@@ -26,6 +29,7 @@ export function useRoomDetails(roomId: string | undefined) {
           setRoomDetails({
             roomName: data.roomName,
             participantCount: data.participantCount,
+            roomOwner: data.roomOwner,
           });
         } else {
           setError(data.error || "Failed to fetch room details");

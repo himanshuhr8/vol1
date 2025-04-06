@@ -40,6 +40,8 @@ model Room {
   owner        User              @relation("OwnedRoom", fields: [ownerId], references: [id], onDelete: Cascade)
   streams      Stream[]
   participants RoomParticipant[]
+  Played       Played[]
+  Upvote       Upvote[]
 }
 
 model RoomParticipant {
@@ -71,32 +73,38 @@ model Stream {
 
   upvoteList       Upvote[]
   currentlyPlaying CurrentlyPlaying?
+  Played           Played[]
 }
 
 model Upvote {
   id       String @id @default(cuid())
   userId   String
   streamId String
+  roomId   String
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, streamId])
+  @@unique([userId, streamId, roomId])
 }
 
 model CurrentlyPlaying {
-  id       String @id @default(cuid())
-  streamId String @unique
-
+  id        String   @id @default(cuid())
+  streamId  String   @unique
   stream    Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
   startedAt DateTime @default(now())
 }
 
 model Played {
   id       String     @id @default(cuid())
-  streamId String     @unique
-  title    String
-  userId   String
+  streamId String
+  roomId   String
   smallImg String
+  title    String
   type     StreamType
+  stream   Stream     @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  room     Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, streamId])
 }

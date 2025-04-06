@@ -24,5 +24,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     roomName: room.roomName,
     participantCount: room.participants.length,
+    roomOwner: room.ownerId,
   });
 }

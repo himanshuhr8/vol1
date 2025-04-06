@@ -6,20 +6,13 @@ import { z } from "zod";
 
 const UpVoteSchema = z.object({
   streamId: z.string(),
+  roomId: z.string(),
 });
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
-
-  const user = await prismaClient.user.findFirst({
-    where: { email: session.user.email },
-  });
-
-  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -32,12 +25,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { streamId } = parsed.data;
+  const { streamId, roomId } = parsed.data;
 
   try {
+    const room = await prismaClient.room.findFirst({
+      where: { roomId: roomId! },
+      select: { id: true },
+    });
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
     const existing = await prismaClient.upvote.findFirst({
       where: {
-        userId: user.id,
+        userId: session.user.id,
         streamId: streamId,
       },
     });
@@ -66,8 +67,9 @@ export async function POST(req: NextRequest) {
       await prismaClient.$transaction([
         prismaClient.upvote.create({
           data: {
-            userId: user.id,
+            userId: session.user.id,
             streamId: streamId,
+            roomId: room.id,
           },
         }),
         prismaClient.stream.update({

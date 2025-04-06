@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useRefreshStore } from "@/store/atoms";
+import { useRefreshStore } from "@/app/store/atoms";
 interface PlayedSong {
   streamId: string;
   title: string;

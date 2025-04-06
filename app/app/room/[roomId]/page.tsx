@@ -4,7 +4,7 @@ import type React from "react";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { useRefreshStore } from "@/store/atoms";
+import { useRefreshStore } from "@/app/store/atoms";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import {
@@ -84,10 +84,6 @@ export default function RoomDashboard() {
   }, [isAddingSong]);
 
   const { streams, upVotedSongs, loading, error } = useStreams(roomId, userId);
-  const currentlyPlaying = streams.length > 0 ? streams[0] : null;
-  const queue = streams.slice(1);
-  console.log({ cur: currentlyPlaying });
-  console.log(queue);
   const { roomDetails } = useRoomDetails(roomId);
 
   const playedSongs = usePlayedSongs();
@@ -102,10 +98,10 @@ export default function RoomDashboard() {
     try {
       const res = await axios.post("/api/streams/upvotes", {
         streamId: songId,
+        roomId: roomId,
       });
 
       if (res.status === 200) {
-        alert("Voted successfully!");
         incrementKey(); // Refresh streams after voting
       }
     } catch (e: any) {
@@ -137,12 +133,14 @@ export default function RoomDashboard() {
   const handleReplaySong = async (streamId: string) => {
     try {
       const response = await axios.post("/api/streams/replay-song", {
-        streamId,
+        streamId: streamId,
+        roomId: roomId,
       });
 
       if (response.status === 200) {
         console.log("Song replayed successfully!");
-        window.location.reload(); // Refresh the entire page
+        setIsHistory(false);
+        // window.location.reload();
         // Optionally, refresh the song queue or UI
       }
     } catch (error) {
@@ -150,7 +148,7 @@ export default function RoomDashboard() {
     }
   };
 
-  const filteredSongs = queue;
+  const filteredSongs = streams;
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
@@ -283,7 +281,7 @@ export default function RoomDashboard() {
         {/* Main Player and Queue */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Currently Playing */}
-          <YouTubeAudioPlayer currentlyPlaying={currentlyPlaying!} />
+          <YouTubeAudioPlayer />
 
           {/* Queue and Chat Tabs */}
           <div className="flex-1 overflow-hidden">
@@ -544,7 +542,7 @@ export default function RoomDashboard() {
                           : "No songs in the queue"}
                       </p>
                     ) : (
-                      queue.map((song) => (
+                      streams.map((song) => (
                         <div
                           key={song.id}
                           className="flex items-center gap-3 p-3 bg-card rounded-lg border hover:bg-accent/50 transition-colors"
@@ -580,19 +578,22 @@ export default function RoomDashboard() {
                                   : "outline"
                               }
                               size="sm"
-                              className="gap-1"
+                              className="flex items-center justify-between gap-3 px-2"
                               onClick={() => handleVote(song.id)}
                               disabled={loading}
                             >
-                              {upVotedSongs?.some(
-                                (upvote) => upvote.streamId === song.id
-                              ) ? (
-                                <ThumbsDown className="h-3 w-3" />
-                              ) : (
-                                <ThumbsUp className="h-3 w-3" />
-                              )}
-
-                              <span>{song.upvotes}</span>
+                              <div className="flex items-center gap-1">
+                                {upVotedSongs?.some(
+                                  (upvote) => upvote.streamId === song.id
+                                ) ? (
+                                  <ThumbsDown className="h-3 w-3" />
+                                ) : (
+                                  <ThumbsUp className="h-3 w-3" />
+                                )}
+                              </div>
+                              <span className="bg-muted px-2 py-0.5 rounded text-xs">
+                                {song.upvotes}
+                              </span>
                             </Button>
                           </div>
                         </div>

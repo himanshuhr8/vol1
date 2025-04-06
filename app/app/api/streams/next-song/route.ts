@@ -27,17 +27,11 @@ export async function POST() {
         data: {
           streamId: currentlyPlaying.stream.id,
           title: currentlyPlaying.stream.title,
-          userId: currentlyPlaying.stream.userId,
+          roomId: currentlyPlaying.stream.roomId,
           smallImg: currentlyPlaying.stream.smallImg,
           type: currentlyPlaying.stream.type,
         },
       });
-
-      // Mark the old song as played instead of deleting it
-      // await prismaClient.stream.update({
-      //   where: { id: currentlyPlaying.stream.id },
-      //   data: { isPlayed: true },
-      // });
 
       // Remove from CurrentlyPlaying
       await prismaClient.currentlyPlaying.delete({
@@ -47,7 +41,7 @@ export async function POST() {
 
     // Set the new song as Currently Playing
     await prismaClient.currentlyPlaying.create({
-      data: { streamId: topSong.id },
+      data: { streamId: topSong.id, startedAt: new Date() },
     });
     await prismaClient.stream.update({
       where: { id: topSong.id },

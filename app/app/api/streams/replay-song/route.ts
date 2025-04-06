@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 import { prismaClient } from "@/app/lib/db";
 import { z } from "zod";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getServerSession } from "next-auth";
 
 const ReplaySchema = z.object({
   streamId: z.string(),
+  roomId: z.string(),
 });
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
     const parsedData = ReplaySchema.safeParse(await req.json());
     if (!parsedData.success) {
       return NextResponse.json(
@@ -15,15 +23,42 @@ export async function POST(req: Request) {
         { status: 411 }
       );
     }
-    const { streamId } = parsedData.data;
 
-    const updatedSong = await prismaClient.stream.update({
-      where: { id: streamId },
-      data: { isPlayed: false, upvotes: 0 },
+    const { streamId, roomId } = parsedData.data;
+
+    const room = await prismaClient.room.findFirst({
+      where: { roomId },
+      select: { id: true },
     });
-    await prismaClient.played.delete({
-      where: { streamId: streamId },
-    });
+
+    if (!room) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    const [updatedSong] = await prismaClient.$transaction([
+      prismaClient.stream.update({
+        where: { id: streamId },
+        data: {
+          isPlayed: false,
+          upvotes: 0,
+        },
+      }),
+      prismaClient.played.delete({
+        where: {
+          roomId_streamId: {
+            roomId: room.id,
+            streamId,
+          },
+        },
+      }),
+      prismaClient.upvote.deleteMany({
+        where: {
+          streamId,
+          roomId: room.id,
+        },
+      }),
+    ]);
+
     return NextResponse.json(
       { message: "Song updated successfully", updatedSong },
       { status: 200 }

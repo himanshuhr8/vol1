@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useMusicStore } from "@/store/currentSong";
+import { useMusicStore } from "@/app/store/currentSong";
 import {
   Play,
   Pause,
@@ -18,25 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 
-interface CurrentlyPlaying {
-  id: string;
-  userId: string;
-  title: string;
-  type: string;
-  smallImg: string;
-  bigImg: string;
-  extractedId: string;
-  upvotes: number;
-  isPlayed: boolean;
-  roomId: string;
-  user: {
-    name: string;
-  };
-}
-
-interface YouTubeAudioPlayerProps {
-  currentlyPlaying: CurrentlyPlaying;
-}
 declare global {
   interface Window {
     YT: any;
@@ -44,10 +25,8 @@ declare global {
   }
 }
 
-const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
-  currentlyPlaying,
-}) => {
-  // const { currentlyPlaying, setCurrentlyPlaying } = useMusicStore();
+const YouTubeAudioPlayer: React.FC = () => {
+  const { currentlyPlaying, setCurrentlyPlaying } = useMusicStore();
   const [player, setPlayer] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
@@ -57,14 +36,37 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    async function fetchCurrentlyPlaying() {
+    const fetchOrStartSong = async () => {
       const res = await fetch("/api/streams/currently-playing");
-      if (res.ok) {
-        const data = await res.json();
-        // setCurrentlyPlaying(data.song);
+      const data = await res.json();
+
+      if (!data.song) {
+        const nextRes = await fetch("/api/streams/next-song", {
+          method: "POST",
+        });
+        const nextData = await nextRes.json();
+        if (nextRes.ok && nextData.song) {
+          setCurrentlyPlaying(nextData.song);
+        }
+      } else {
+        setCurrentlyPlaying(data.song);
       }
-    }
-    // fetchCurrentlyPlaying();
+    };
+
+    // Fetch immediately
+    fetchOrStartSong();
+
+    // Then set interval to refresh every 5 seconds
+    const interval = setInterval(fetchOrStartSong, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Separate useEffect for initializing YouTube Player
+  useEffect(() => {
+    if (!currentlyPlaying?.extractedId) return;
 
     if (!window.YT) {
       const tag = document.createElement("script");
@@ -73,18 +75,16 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
       document.body.appendChild(tag);
 
       window.onYouTubeIframeAPIReady = () => {
-        if (currentlyPlaying?.extractedId)
-          initializePlayer(currentlyPlaying.extractedId);
+        initializePlayer(currentlyPlaying.extractedId!);
       };
     } else {
       if (currentlyPlaying?.extractedId)
         initializePlayer(currentlyPlaying.extractedId);
     }
-
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  }, [currentlyPlaying?.extractedId]);
+  }, [currentlyPlaying?.extractedId]); // ← Re-run when extractedId changes
 
   const initializePlayer = (videoId: string) => {
     if (!window.YT || !videoId) return;
@@ -118,6 +118,8 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
           if (event.data === window.YT.PlayerState.ENDED) {
             setIsPlaying(false);
             if (intervalId) clearInterval(intervalId);
+
+            handlePlayNext();
           }
         },
       },
@@ -156,10 +158,11 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
     const res = await fetch("/api/streams/next-song", { method: "POST" });
     if (res.ok) {
       const data = await res.json();
-      // setCurrentlyPlaying(data.song);
+      setCurrentlyPlaying(data.song);
       window.location.reload();
     }
   }
+
   return (
     <div className="p-6 border-b bg-muted/30 dark:bg-muted/10">
       <div className="max-w-4xl mx-auto">
@@ -192,7 +195,9 @@ const YouTubeAudioPlayer: React.FC<YouTubeAudioPlayerProps> = ({
           <div className="flex flex-col justify-between h-full">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">{currentlyPlaying.title}</h2>
-              {/* <p className="text-sm">Added by {currentlyPlaying.addedBy}</p> */}
+              {/* <p className="text-sm">
+                Added by {currentlyPlaying.room.ownerId}
+              </p> */}
             </div>
 
             {/* Progress Bar */}

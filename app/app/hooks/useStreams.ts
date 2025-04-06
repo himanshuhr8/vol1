@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useRefreshStore } from "@/store/atoms";
+import { useRefreshStore } from "@/app/store/atoms";
 
 // Define the structure of a Stream
 interface Stream {
@@ -57,7 +57,7 @@ export default function useStreams(
             params: { roomId: roomId },
           }),
           axios.get<{ upVoted: UpvotedSong[] }>("/api/streams/upvoted-songs", {
-            params: { creatorId: userId },
+            params: { creatorId: userId, roomId: roomId },
           }),
         ]);
 
@@ -81,7 +81,11 @@ export default function useStreams(
       }
     };
 
-    fetchStreams();
+    const interval = setInterval(fetchStreams, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [userId, refreshKey]); // 🔥 Depend on refreshKey
 
   return { streams, upVotedSongs, loading, error };

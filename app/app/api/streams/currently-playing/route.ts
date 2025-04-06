@@ -4,7 +4,22 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const currentlyPlaying = await prismaClient.currentlyPlaying.findFirst({
-      include: { stream: true },
+      include: {
+        stream: {
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+            room: {
+              select: {
+                ownerId: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!currentlyPlaying) {
