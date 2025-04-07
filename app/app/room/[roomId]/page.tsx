@@ -11,21 +11,13 @@ import {
   Music,
   Users,
   ThumbsUp,
-  Play,
-  Pause,
-  SkipForward,
-  Volume2,
-  VolumeX,
   Settings,
   LogOut,
   Youtube,
   AirplayIcon as Spotify,
   Plus,
   Search,
-  Send,
   X,
-  ExternalLink,
-  Heart,
   Share2,
   ThumbsDown,
 } from "lucide-react";
@@ -70,6 +62,7 @@ export default function RoomDashboard() {
   const [newSongSource, setNewSongSource] = useState<"youtube" | "spotify">(
     "youtube"
   );
+  const [showParticipants, setShowParticipants] = useState(false);
   const [isAddingSong, setIsAddingSong] = useState(false);
   const [isHistory, setIsHistory] = useState(false);
 
@@ -148,6 +141,12 @@ export default function RoomDashboard() {
       console.error("Error replaying song:", error);
     }
   };
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).catch((err) => {
+      console.error("Failed to copy: ", err);
+    });
+  };
+
   const isOwner = roomDetails?.roomOwner === userId;
   const filteredSongs = streams;
   return (
@@ -171,7 +170,12 @@ export default function RoomDashboard() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => setShowParticipants(!showParticipants)}
+                >
                   <Users className="h-5 w-5" />
                   <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">
                     {roomDetails?.participantCount}
@@ -199,7 +203,11 @@ export default function RoomDashboard() {
                   <p className="text-sm text-muted-foreground">Room Code</p>
                   <div className="flex">
                     <Input readOnly value={roomId} className="rounded-r-none" />
-                    <Button variant="secondary" className="rounded-l-none">
+                    <Button
+                      variant="secondary"
+                      className="rounded-l-none"
+                      onClick={() => handleCopy(roomId)}
+                    >
                       Copy
                     </Button>
                   </div>
@@ -212,7 +220,13 @@ export default function RoomDashboard() {
                       value={`https://musicroom.app/room/${roomId}`}
                       className="rounded-r-none"
                     />
-                    <Button variant="secondary" className="rounded-l-none">
+                    <Button
+                      variant="secondary"
+                      className="rounded-l-none"
+                      onClick={() =>
+                        handleCopy(`https://musicroom.app/room/${roomId}`)
+                      }
+                    >
                       Copy
                     </Button>
                   </div>
@@ -225,12 +239,12 @@ export default function RoomDashboard() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Avatar className="h-8 w-8 cursor-pointer">
+              <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src="/placeholder.svg?height=32&width=32"
-                  alt="User"
+                  src={""} // Replace with avatar URL if available
+                  alt={session.user.name}
                 />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarFallback>{session.user.name[0]}</AvatarFallback>
               </Avatar>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
@@ -240,16 +254,13 @@ export default function RoomDashboard() {
               <div className="flex flex-col gap-4 py-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage
-                      src="/placeholder.svg?height=64&width=64"
-                      alt="User"
-                    />
-                    <AvatarFallback>U</AvatarFallback>
+                    <AvatarImage src="" alt={session.user.name} />
+                    <AvatarFallback>{session.user.name[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">Alex</p>
+                    <p className="font-medium">{session.user.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      alex@example.com
+                      {session.user.email}
                     </p>
                   </div>
                 </div>
@@ -608,35 +619,39 @@ export default function RoomDashboard() {
         </div>
 
         {/* Participants Sidebar (hidden on mobile) */}
-        {/* <div className="w-64 border-l hidden lg:block overflow-y-auto">
-          <div className="p-4 border-b">
-            <h3 className="font-medium">
-              Participants ({roomData.participants.length})
-            </h3>
+        {roomDetails && showParticipants && (
+          <div className="w-64 border-l hidden lg:block overflow-y-auto">
+            <div className="p-4 border-b">
+              <h3 className="font-medium">
+                Participants ({roomDetails.participants.length})
+              </h3>
+            </div>
+            <div className="p-2">
+              {roomDetails.participants.map((participant) => (
+                <div
+                  key={participant.id}
+                  className="flex items-center gap-2 p-2 rounded-md hover:bg-accent/50"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={""} // Replace with avatar URL if available
+                      alt={participant.name}
+                    />
+                    <AvatarFallback>
+                      {participant.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm">{participant.name}</span>
+                  {participant.id === roomDetails.roomOwner && (
+                    <Badge variant="outline" className="ml-auto text-xs">
+                      Host
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="p-2">
-            {roomData.participants.map((participant) => (
-              <div
-                key={participant.id}
-                className="flex items-center gap-2 p-2 rounded-md hover:bg-accent/50"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src={participant.avatar}
-                    alt={participant.name}
-                  />
-                  <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm">{participant.name}</span>
-                {participant.name === roomData.createdBy && (
-                  <Badge variant="outline" className="ml-auto text-xs">
-                    Host
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
-        </div> */}
+        )}
       </div>
     </div>
   );

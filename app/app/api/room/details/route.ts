@@ -13,7 +13,16 @@ export async function GET(req: NextRequest) {
   const room = await prismaClient.room.findUnique({
     where: { roomId },
     include: {
-      participants: true,
+      participants: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              id: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -24,6 +33,10 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     roomName: room.roomName,
     participantCount: room.participants.length,
+    participants: room.participants.map((p) => ({
+      name: p.user.name,
+      id: p.user.id,
+    })),
     roomOwner: room.ownerId,
   });
 }

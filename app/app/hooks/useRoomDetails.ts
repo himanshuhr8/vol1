@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 
+interface Participant {
+  name: string;
+  id: string;
+}
+
 interface RoomDetails {
   roomName: string;
   participantCount: number;
   roomOwner: string;
+  participants: Participant[];
 }
 
 export function useRoomDetails(roomId: string | undefined) {
@@ -30,6 +36,7 @@ export function useRoomDetails(roomId: string | undefined) {
             roomName: data.roomName,
             participantCount: data.participantCount,
             roomOwner: data.roomOwner,
+            participants: data.participants || [],
           });
         } else {
           setError(data.error || "Failed to fetch room details");
