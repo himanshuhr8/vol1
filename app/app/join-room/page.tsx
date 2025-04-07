@@ -20,7 +20,7 @@ interface JoinRoomResponse {
 export default function JoinRoomPage() {
   const router = useRouter();
   const [roomCode, setRoomCode] = useState("");
-  const [nickname, setNickname] = useState("");
+  // const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleJoinRoom = async () => {
@@ -65,14 +65,14 @@ export default function JoinRoomPage() {
                 className="text-center text-lg py-6"
               />
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Input
                 type="text"
                 placeholder="Enter your nickname (optional)"
                 onChange={(e) => setNickname(e.target.value)}
                 className="text-center py-4"
               />
-            </div>
+            </div> */}
             <Button
               className="w-full"
               size="lg"

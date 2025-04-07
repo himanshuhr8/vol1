@@ -46,8 +46,9 @@ export function Faq() {
             Do I need Spotify Premium to use MusicRoom?
           </h3>
           <p className="text-muted-foreground">
-            No, you don't need Spotify Premium. MusicRoom plays music through
-            YouTube and Spotify's web player, which works with free accounts.
+            No, you don&apos;t need Spotify Premium. MusicRoom plays music
+            through YouTube and Spotify&apos;s web player, which works with free
+            accounts.
           </p>
         </div>
       </div>

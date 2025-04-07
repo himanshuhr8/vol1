@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prismaClient } from "@/app/lib/db";
 
-//@ts-ignore
+//@ts-expect-error
 import youtubesearchapi from "youtube-search-api";
 import { broken_cat } from "@/public/utils";
-var YT_REGEX =
+const YT_REGEX =
   /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 
 const CreateStreamSchema = z.object({
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     // console.log(res.thumbnail.thumbnails);
     const thumbnails = res.thumbnail.thumbnails;
     thumbnails.sort((a: { width: number }, b: { width: number }) =>
-      a.width < a.width ? -1 : 1
+      a.width < b.width ? -1 : 1
     );
     // console.log(thumbnails);
 

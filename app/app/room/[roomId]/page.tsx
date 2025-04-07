@@ -56,13 +56,13 @@ export default function RoomDashboard() {
   const { data: session, status } = useSession();
 
   const roomId = params.roomId as string;
-  const userId = session?.user?.id ?? "";
+  const userId = session?.user?.id!;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [newSongUrl, setNewSongUrl] = useState("");
-  const [newSongSource, setNewSongSource] = useState<"youtube" | "spotify">(
-    "youtube"
-  );
+  // const [newSongSource, setNewSongSource] = useState<"youtube" | "spotify">(
+  //   "youtube"
+  // );
   const [showParticipants, setShowParticipants] = useState(false);
   const [isAddingSong, setIsAddingSong] = useState(false);
   const [isHistory, setIsHistory] = useState(false);
@@ -98,7 +98,7 @@ export default function RoomDashboard() {
   }, [isAddingSong]);
 
   const { roomDetails } = useRoomDetails(roomId);
-  const { streams, upVotedSongs, loading, error } = useStreams(
+  const { streams, upVotedSongs, loading } = useStreams(
     roomDetails?.roomActualId!,
     userId
   );
@@ -134,7 +134,7 @@ export default function RoomDashboard() {
       roomId: roomDetails?.roomActualId,
     };
     try {
-      const res = await axios.post("/api/streams", payload);
+      await axios.post("/api/streams", payload);
       setNewSongUrl("");
       setIsAddingSong(false);
       incrementKey(); // Refresh streams after adding a song
@@ -159,6 +159,7 @@ export default function RoomDashboard() {
         setIsHistory(false);
       }
     } catch (error) {
+      console.log(error);
       toast.error("Error replaying song");
     }
   };
@@ -174,11 +175,13 @@ export default function RoomDashboard() {
         router.push("/");
       }
     } catch (error) {
+      console.log(error);
       toast.error("Error leaving song");
     }
   };
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).catch((err) => {
+      console.log(err);
       toast.error("Failed to copy");
     });
   };
@@ -331,7 +334,7 @@ export default function RoomDashboard() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Currently Playing */}
           {isOwner ? (
-            <YouTubeAudioPlayer roomActualId={roomDetails.roomActualId} />
+            <YouTubeAudioPlayer roomActualId={roomDetails?.roomActualId} />
           ) : (
             <CurrentSongDisplay roomActualId={roomDetails?.roomActualId!} />
           )}
@@ -402,14 +405,14 @@ export default function RoomDashboard() {
                               <TabsList className="grid grid-cols-2 mb-4">
                                 <TabsTrigger
                                   value="youtube"
-                                  onClick={() => setNewSongSource("youtube")}
+                                  // onClick={() => setNewSongSource("youtube")}
                                 >
                                   <Youtube className="h-4 w-4 mr-2 text-red-500" />
                                   YouTube
                                 </TabsTrigger>
                                 <TabsTrigger
                                   value="spotify"
-                                  onClick={() => setNewSongSource("spotify")}
+                                  // onClick={() => setNewSongSource("spotify")}
                                 >
                                   <Spotify className="h-4 w-4 mr-2 text-green-500" />
                                   Spotify

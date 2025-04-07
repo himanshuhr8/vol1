@@ -84,6 +84,7 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
               setCurrentlyPlaying(null);
             }
           } catch (error) {
+            console.log(error);
             toast.error("Error fetching next song");
             setCurrentlyPlaying(null);
           }
@@ -91,6 +92,7 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
           setCurrentlyPlaying(data.song); // ✅ safely typed
         }
       } catch (error) {
+        console.log(error);
         toast.error("Error fetching currently playing song");
         setCurrentlyPlaying(null);
       }

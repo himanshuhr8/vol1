@@ -1,4 +1,4 @@
-import { Link, Music } from "lucide-react";
+import { Music } from "lucide-react";
 
 export function Fotter() {
   return (

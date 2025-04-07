@@ -59,6 +59,7 @@ const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
               setCurrentlyPlaying(null);
             }
           } catch (error) {
+            console.log(error);
             toast.error("Error fetching next song");
             setCurrentlyPlaying(null);
           }
@@ -66,6 +67,7 @@ const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
           setCurrentlyPlaying(data.song); // ✅ safely typed
         }
       } catch (error) {
+        console.log(error);
         toast.error("Error fetching currently playing song");
         setCurrentlyPlaying(null);
       }
@@ -78,9 +80,6 @@ const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
   }, [roomActualId]);
 
   if (!currentlyPlaying) return <p>No song is currently playing.</p>;
-
-  const formatTime = (seconds: number) =>
-    new Date(seconds * 1000).toISOString().substring(14, 19);
 
   return (
     <div className="p-6 border-b bg-muted/30 dark:bg-muted/10">

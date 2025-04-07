@@ -16,12 +16,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const metadata: Metadata = {
-  title: "MusicRoom - Collaborative Music Sharing Platform",
-  description:
-    "Share music together, vote on what plays next. Create a room, invite friends, and build the perfect playlist together.",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{

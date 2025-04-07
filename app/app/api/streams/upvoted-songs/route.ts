@@ -16,8 +16,9 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json({ upVoted: upVotedStreams });
   } catch (e) {
+    console.log(e);
     return NextResponse.json(
-      { error: "Error while fetching streams" },
+      { error: "Error while fetching streams :" },
       { status: 411 }
     );
   }

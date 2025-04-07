@@ -44,6 +44,7 @@ export function useRoomDetails(roomId: string | undefined) {
           setError(data.error || "Failed to fetch room details");
         }
       } catch (err) {
+        console.log(err);
         setError("An error occurred while fetching room details");
       } finally {
         setLoading(false);
