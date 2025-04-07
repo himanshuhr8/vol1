@@ -56,6 +56,7 @@ import useStreams from "@/app/hooks/useStreams";
 import YouTubeAudioPlayer from "@/app/components/dashboard/YouTubeAudio";
 import { usePlayedSongs } from "@/app/hooks/usePlayedSongs";
 import { useRoomDetails } from "@/app/hooks/useRoomDetails";
+import CurrentSongDisplay from "@/app/components/dashboard/CurrentSongDisplay";
 
 export default function RoomDashboard() {
   const params = useParams();
@@ -147,7 +148,7 @@ export default function RoomDashboard() {
       console.error("Error replaying song:", error);
     }
   };
-
+  const isOwner = roomDetails?.roomOwner === userId;
   const filteredSongs = streams;
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -281,7 +282,7 @@ export default function RoomDashboard() {
         {/* Main Player and Queue */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Currently Playing */}
-          <YouTubeAudioPlayer />
+          {isOwner ? <YouTubeAudioPlayer /> : <CurrentSongDisplay />}
 
           {/* Queue and Chat Tabs */}
           <div className="flex-1 overflow-hidden">
