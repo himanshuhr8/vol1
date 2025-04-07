@@ -1,6 +1,6 @@
 import { prismaClient } from "@/app/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { string, z } from "zod";
+import { z } from "zod";
 
 const NextSongSchema = z.object({
   roomActualId: z.string(),

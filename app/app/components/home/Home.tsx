@@ -7,10 +7,6 @@ import {
   PlusCircle,
   Youtube,
   AirplayIcon as Spotify,
-  ArrowRight,
-  Divide,
-  Feather,
-  Link,
 } from "lucide-react";
 
 export function Home() {

@@ -1,18 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-import {
-  Music,
-  Users,
-  ThumbsUp,
-  Play,
-  PlusCircle,
-  Youtube,
-  AirplayIcon as Spotify,
-  ArrowRight,
-  Divide,
-  Feather,
-} from "lucide-react";
+import { Music, Users, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import { Authenticate_Button } from "./components/home/Authenticate_Button";
@@ -22,7 +11,6 @@ import { How_it_works } from "./components/home/How_it_works";
 import { Features } from "./components/home/Features";
 import { Home } from "./components/home/Home";
 import { MyRoomDropdown } from "./components/home/MyRoomDropdown";
-import { useSession } from "next-auth/react";
 
 export default function LandingPage() {
   return (
