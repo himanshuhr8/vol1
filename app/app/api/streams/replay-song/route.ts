@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     const [updatedSong] = await prismaClient.$transaction([
       prismaClient.stream.update({
-        where: { id: streamId },
+        where: { id: streamId, roomId: room.id },
         data: {
           isPlayed: false,
           upvotes: 0,

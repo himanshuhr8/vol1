@@ -38,5 +38,6 @@ export async function GET(req: NextRequest) {
       id: p.user.id,
     })),
     roomOwner: room.ownerId,
+    roomActualId: room.id,
   });
 }

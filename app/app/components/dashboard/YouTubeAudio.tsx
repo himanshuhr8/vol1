@@ -1,5 +1,5 @@
 "use client";
-
+import axios from "axios";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useMusicStore } from "@/app/store/currentSong";
@@ -18,14 +18,35 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 
+interface YoutubeInterface {
+  roomActualId: string;
+}
 declare global {
   interface Window {
     YT: any;
     onYouTubeIframeAPIReady: () => void;
   }
 }
+type Song = {
+  id: string;
+  userId: string;
+  title: string;
+  type: string;
+  smallImg: string;
+  bigImg: string;
+  extractedId: string;
+  upvotes: number;
+  isPlayed: boolean;
+  roomId: string;
+  user: {
+    name: string;
+  };
+  room: {
+    ownerId: string;
+  };
+};
 
-const YouTubeAudioPlayer: React.FC = () => {
+const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
   const { currentlyPlaying, setCurrentlyPlaying } = useMusicStore();
   const [player, setPlayer] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -37,32 +58,48 @@ const YouTubeAudioPlayer: React.FC = () => {
 
   useEffect(() => {
     const fetchOrStartSong = async () => {
-      const res = await fetch("/api/streams/currently-playing");
-      const data = await res.json();
+      try {
+        const res = await axios.get<{ song: Song | null }>(
+          "/api/streams/currently-playing",
+          {
+            params: {
+              roomId: roomActualId,
+            },
+          }
+        );
 
-      if (!data.song) {
-        const nextRes = await fetch("/api/streams/next-song", {
-          method: "POST",
-        });
-        const nextData = await nextRes.json();
-        if (nextRes.ok && nextData.song) {
-          setCurrentlyPlaying(nextData.song);
+        const data = res.data;
+
+        if (!data.song) {
+          try {
+            const nextRes = await axios.post<{ song: Song | null }>(
+              "/api/streams/next-song",
+              { roomActualId }
+            );
+
+            if (nextRes.status === 200 && nextRes.data?.song) {
+              setCurrentlyPlaying(nextRes.data.song); // ✅ safely typed
+            } else {
+              setCurrentlyPlaying(null);
+            }
+          } catch (error) {
+            console.error("Error fetching next song:", error);
+            setCurrentlyPlaying(null);
+          }
+        } else {
+          setCurrentlyPlaying(data.song); // ✅ safely typed
         }
-      } else {
-        setCurrentlyPlaying(data.song);
+      } catch (error) {
+        console.error("Error fetching currently playing song:", error);
+        setCurrentlyPlaying(null);
       }
     };
 
-    // Fetch immediately
     fetchOrStartSong();
 
-    // Then set interval to refresh every 5 seconds
     const interval = setInterval(fetchOrStartSong, 5000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    return () => clearInterval(interval);
+  }, [roomActualId]);
 
   // Separate useEffect for initializing YouTube Player
   useEffect(() => {
@@ -155,12 +192,17 @@ const YouTubeAudioPlayer: React.FC = () => {
       .substring(14, 19);
   };
   async function handlePlayNext() {
-    const res = await fetch("/api/streams/next-song", { method: "POST" });
-    if (res.ok) {
-      const data = await res.json();
-      setCurrentlyPlaying(data.song);
-      window.location.reload();
+    const nextRes = await axios.post<{ song: Song | null }>(
+      "/api/streams/next-song",
+      { roomActualId }
+    );
+
+    if (nextRes.status === 200 && nextRes.data?.song) {
+      setCurrentlyPlaying(nextRes.data.song); // ✅ safely typed
+    } else {
+      setCurrentlyPlaying(null);
     }
+    window.location.reload();
   }
 
   return (

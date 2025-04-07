@@ -1,36 +1,80 @@
 "use client";
-
+import axios from "axios";
 import { useEffect } from "react";
 import Image from "next/image";
 import { Youtube, AirplayIcon as Spotify } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useMusicStore } from "@/app/store/currentSong";
 
-const CurrentSongDisplay: React.FC = () => {
+interface YoutubeInterface {
+  roomActualId: string;
+}
+type Song = {
+  id: string;
+  userId: string;
+  title: string;
+  type: string;
+  smallImg: string;
+  bigImg: string;
+  extractedId: string;
+  upvotes: number;
+  isPlayed: boolean;
+  roomId: string;
+  user: {
+    name: string;
+  };
+  room: {
+    ownerId: string;
+  };
+};
+
+const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
   const { currentlyPlaying, setCurrentlyPlaying } = useMusicStore();
 
   useEffect(() => {
     const fetchOrStartSong = async () => {
-      const res = await fetch("/api/streams/currently-playing");
-      const data = await res.json();
+      try {
+        const res = await axios.get<{ song: Song | null }>(
+          "/api/streams/currently-playing",
+          {
+            params: {
+              roomId: roomActualId,
+            },
+          }
+        );
 
-      if (!data.song) {
-        const nextRes = await fetch("/api/streams/next-song", {
-          method: "POST",
-        });
-        const nextData = await nextRes.json();
-        if (nextRes.ok && nextData.song) {
-          setCurrentlyPlaying(nextData.song);
+        const data = res.data;
+
+        if (!data.song) {
+          try {
+            const nextRes = await axios.post<{ song: Song | null }>(
+              "/api/streams/next-song",
+              { roomActualId }
+            );
+
+            if (nextRes.status === 200 && nextRes.data?.song) {
+              setCurrentlyPlaying(nextRes.data.song); // ✅ safely typed
+            } else {
+              setCurrentlyPlaying(null);
+            }
+          } catch (error) {
+            console.error("Error fetching next song:", error);
+            setCurrentlyPlaying(null);
+          }
+        } else {
+          setCurrentlyPlaying(data.song); // ✅ safely typed
         }
-      } else {
-        setCurrentlyPlaying(data.song);
+      } catch (error) {
+        console.error("Error fetching currently playing song:", error);
+        setCurrentlyPlaying(null);
       }
     };
 
     fetchOrStartSong();
+
     const interval = setInterval(fetchOrStartSong, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [roomActualId]);
 
   if (!currentlyPlaying) return <p>No song is currently playing.</p>;
 

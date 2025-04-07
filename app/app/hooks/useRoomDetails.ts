@@ -9,6 +9,7 @@ interface RoomDetails {
   roomName: string;
   participantCount: number;
   roomOwner: string;
+  roomActualId: string;
   participants: Participant[];
 }
 
@@ -37,6 +38,7 @@ export function useRoomDetails(roomId: string | undefined) {
             participantCount: data.participantCount,
             roomOwner: data.roomOwner,
             participants: data.participants || [],
+            roomActualId: data.roomActualId,
           });
         } else {
           setError(data.error || "Failed to fetch room details");

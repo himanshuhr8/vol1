@@ -37,11 +37,12 @@ model Room {
   roomName String
   ownerId  String @unique @map("ownerId")
 
-  owner        User              @relation("OwnedRoom", fields: [ownerId], references: [id], onDelete: Cascade)
-  streams      Stream[]
-  participants RoomParticipant[]
-  Played       Played[]
-  Upvote       Upvote[]
+  owner            User              @relation("OwnedRoom", fields: [ownerId], references: [id], onDelete: Cascade)
+  streams          Stream[]
+  participants     RoomParticipant[]
+  Played           Played[]
+  Upvote           Upvote[]
+  CurrentlyPlaying CurrentlyPlaying?
 }
 
 model RoomParticipant {
@@ -59,7 +60,7 @@ model Stream {
   id          String     @id @default(cuid())
   roomId      String
   url         String
-  extractedId String     @unique
+  extractedId String
   title       String
   smallImg    String
   bigImg      String
@@ -67,13 +68,14 @@ model Stream {
   upvotes     Int        @default(0)
   isPlayed    Boolean    @default(false)
 
-  room   Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  room             Room               @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId           String?
+  user             User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   upvoteList       Upvote[]
-  currentlyPlaying CurrentlyPlaying?
   Played           Played[]
+  CurrentlyPlaying CurrentlyPlaying[]
+
+  @@unique([extractedId, roomId])
 }
 
 model Upvote {
@@ -91,9 +93,12 @@ model Upvote {
 
 model CurrentlyPlaying {
   id        String   @id @default(cuid())
-  streamId  String   @unique
-  stream    Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  streamId  String
+  roomId    String   @unique
   startedAt DateTime @default(now())
+
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Played {

@@ -36,27 +36,17 @@ export async function POST(req: NextRequest) {
 
     const res = await youtubesearchapi.GetVideoDetails(extractedId);
     // console.log(res);
-    console.log(res.thumbnail.thumbnails);
+    // console.log(res.thumbnail.thumbnails);
     const thumbnails = res.thumbnail.thumbnails;
     thumbnails.sort((a: { width: number }, b: { width: number }) =>
       a.width < a.width ? -1 : 1
     );
     // console.log(thumbnails);
-    const id = await prismaClient.room.findFirst({
-      where: {
-        roomId: roomId,
-      },
-      select: {
-        id: true,
-      },
-    });
-    if (!id) {
-      return NextResponse.json({ error: "Room not found" }, { status: 404 });
-    }
+
     const stream = await prismaClient.stream.create({
       data: {
         userId: userId,
-        roomId: id.id,
+        roomId: roomId,
         url: url,
         title: res.title ?? "It broke sadly :(",
         extractedId: extractedId,
@@ -86,22 +76,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing roomId" }, { status: 400 });
     }
 
-    const id = await prismaClient.room.findFirst({
-      where: {
-        roomId: roomIdParam,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!id) {
-      return NextResponse.json({ error: "Room not found" }, { status: 404 });
-    }
-
     const streams = await prismaClient.stream.findMany({
       where: {
-        roomId: id.id,
+        roomId: roomIdParam,
         isPlayed: false,
       },
       include: {

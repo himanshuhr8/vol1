@@ -44,20 +44,19 @@ export default function useStreams(
   const refreshKey = useRefreshStore((state) => state.refreshKey);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !roomId) return;
 
     const fetchStreams = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // Fetch streams and upvoted songs in parallel
         const [streamsRes, upVotedRes] = await Promise.all([
           axios.get<{ streams: Stream[] }>("/api/streams", {
-            params: { roomId: roomId },
+            params: { roomId },
           }),
           axios.get<{ upVoted: UpvotedSong[] }>("/api/streams/upvoted-songs", {
-            params: { creatorId: userId, roomId: roomId },
+            params: { creatorId: userId, roomId },
           }),
         ]);
 
@@ -81,12 +80,14 @@ export default function useStreams(
       }
     };
 
+    // ✅ Immediate fetch
+    fetchStreams();
+
+    // ✅ Poll every 5s
     const interval = setInterval(fetchStreams, 5000);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [userId, refreshKey]); // 🔥 Depend on refreshKey
+    return () => clearInterval(interval);
+  }, [userId, roomId, refreshKey]); // ✅ Added roomId
 
   return { streams, upVotedSongs, loading, error };
 }

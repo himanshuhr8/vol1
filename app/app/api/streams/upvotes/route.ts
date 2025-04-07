@@ -28,18 +28,11 @@ export async function POST(req: NextRequest) {
   const { streamId, roomId } = parsed.data;
 
   try {
-    const room = await prismaClient.room.findFirst({
-      where: { roomId: roomId! },
-      select: { id: true },
-    });
-
-    if (!room) {
-      return NextResponse.json({ error: "Room not found" }, { status: 404 });
-    }
     const existing = await prismaClient.upvote.findFirst({
       where: {
         userId: session.user.id,
         streamId: streamId,
+        roomId: roomId,
       },
     });
 
@@ -52,7 +45,7 @@ export async function POST(req: NextRequest) {
           },
         }),
         prismaClient.stream.update({
-          where: { id: streamId },
+          where: { id: streamId, roomId: roomId },
           data: {
             upvotes: {
               decrement: 1,
@@ -69,11 +62,11 @@ export async function POST(req: NextRequest) {
           data: {
             userId: session.user.id,
             streamId: streamId,
-            roomId: room.id,
+            roomId: roomId,
           },
         }),
         prismaClient.stream.update({
-          where: { id: streamId },
+          where: { id: streamId, roomId: roomId },
           data: {
             upvotes: {
               increment: 1,

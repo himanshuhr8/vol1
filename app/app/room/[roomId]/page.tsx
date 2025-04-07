@@ -77,10 +77,13 @@ export default function RoomDashboard() {
     }
   }, [isAddingSong]);
 
-  const { streams, upVotedSongs, loading, error } = useStreams(roomId, userId);
   const { roomDetails } = useRoomDetails(roomId);
+  const { streams, upVotedSongs, loading, error } = useStreams(
+    roomDetails?.roomActualId!,
+    userId
+  );
 
-  const playedSongs = usePlayedSongs();
+  const playedSongs = usePlayedSongs(roomDetails?.roomActualId!);
   const historySongs = playedSongs.playedSongs;
 
   // 🔁 Now conditionally render AFTER hooks
@@ -92,7 +95,7 @@ export default function RoomDashboard() {
     try {
       const res = await axios.post("/api/streams/upvotes", {
         streamId: songId,
-        roomId: roomId,
+        roomId: roomDetails?.roomActualId,
       });
 
       if (res.status === 200) {
@@ -108,7 +111,7 @@ export default function RoomDashboard() {
     const payload = {
       userId: userId,
       url: newSongUrl,
-      roomId: roomId,
+      roomId: roomDetails?.roomActualId,
     };
     try {
       const res = await axios.post("/api/streams", payload);
@@ -293,7 +296,11 @@ export default function RoomDashboard() {
         {/* Main Player and Queue */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Currently Playing */}
-          {isOwner ? <YouTubeAudioPlayer /> : <CurrentSongDisplay />}
+          {isOwner ? (
+            <YouTubeAudioPlayer roomActualId={roomDetails.roomActualId} />
+          ) : (
+            <CurrentSongDisplay roomActualId={roomDetails?.roomActualId!} />
+          )}
 
           {/* Queue and Chat Tabs */}
           <div className="flex-1 overflow-hidden">
