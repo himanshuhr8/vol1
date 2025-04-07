@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { toast } from "sonner";
 
 interface YoutubeInterface {
   roomActualId: string;
@@ -78,19 +79,19 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
             );
 
             if (nextRes.status === 200 && nextRes.data?.song) {
-              setCurrentlyPlaying(nextRes.data.song); // ✅ safely typed
+              setCurrentlyPlaying(nextRes.data.song);
             } else {
               setCurrentlyPlaying(null);
             }
           } catch (error) {
-            console.error("Error fetching next song:", error);
+            toast.error("Error fetching next song");
             setCurrentlyPlaying(null);
           }
         } else {
           setCurrentlyPlaying(data.song); // ✅ safely typed
         }
       } catch (error) {
-        console.error("Error fetching currently playing song:", error);
+        toast.error("Error fetching currently playing song");
         setCurrentlyPlaying(null);
       }
     };

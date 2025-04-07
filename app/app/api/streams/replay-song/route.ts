@@ -26,18 +26,9 @@ export async function POST(req: Request) {
 
     const { streamId, roomId } = parsedData.data;
 
-    const room = await prismaClient.room.findFirst({
-      where: { roomId },
-      select: { id: true },
-    });
-
-    if (!room) {
-      return NextResponse.json({ error: "Room not found" }, { status: 404 });
-    }
-
     const [updatedSong] = await prismaClient.$transaction([
       prismaClient.stream.update({
-        where: { id: streamId, roomId: room.id },
+        where: { id: streamId, roomId: roomId },
         data: {
           isPlayed: false,
           upvotes: 0,
@@ -46,7 +37,7 @@ export async function POST(req: Request) {
       prismaClient.played.delete({
         where: {
           roomId_streamId: {
-            roomId: room.id,
+            roomId: roomId,
             streamId,
           },
         },
@@ -54,7 +45,7 @@ export async function POST(req: Request) {
       prismaClient.upvote.deleteMany({
         where: {
           streamId,
-          roomId: room.id,
+          roomId: roomId,
         },
       }),
     ]);

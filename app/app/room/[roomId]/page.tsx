@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRefreshStore } from "@/app/store/atoms";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Music,
   Users,
@@ -21,6 +21,7 @@ import {
   Share2,
   ThumbsDown,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,25 @@ export default function RoomDashboard() {
   const incrementKey = useRefreshStore((state) => state.incrementKey);
 
   useEffect(() => {
+    if (!roomId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        await axios.get("/api/room/details", {
+          params: { roomId },
+        });
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          toast.error("Room has been closed by the host.");
+          router.push("/");
+        }
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [roomId]);
+
+  useEffect(() => {
     if (isAddingSong && addSongInputRef.current) {
       setTimeout(() => {
         addSongInputRef.current?.focus();
@@ -85,7 +105,7 @@ export default function RoomDashboard() {
 
   const playedSongs = usePlayedSongs(roomDetails?.roomActualId!);
   const historySongs = playedSongs.playedSongs;
-
+  const router = useRouter();
   // 🔁 Now conditionally render AFTER hooks
   if (status === "loading") return <p>Loading...</p>;
   if (!session) return <p>You are not signed in</p>;
@@ -131,22 +151,35 @@ export default function RoomDashboard() {
     try {
       const response = await axios.post("/api/streams/replay-song", {
         streamId: streamId,
-        roomId: roomId,
+        roomId: roomDetails?.roomActualId,
       });
 
       if (response.status === 200) {
-        console.log("Song replayed successfully!");
+        toast.success("Song replayed successfully!");
         setIsHistory(false);
-        // window.location.reload();
-        // Optionally, refresh the song queue or UI
       }
     } catch (error) {
-      console.error("Error replaying song:", error);
+      toast.error("Error replaying song");
+    }
+  };
+  const handleLeave = async () => {
+    try {
+      const response = await axios.post("/api/room/leave", {
+        userId: userId,
+        roomId: roomDetails?.roomActualId,
+      });
+
+      if (response.status === 200) {
+        toast.success("Left room");
+        router.push("/");
+      }
+    } catch (error) {
+      toast.error("Error leaving song");
     }
   };
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).catch((err) => {
-      console.error("Failed to copy: ", err);
+      toast.error("Failed to copy");
     });
   };
 
@@ -280,6 +313,7 @@ export default function RoomDashboard() {
                     variant="outline"
                     className="w-full justify-start text-destructive hover:text-destructive"
                     size="sm"
+                    onClick={handleLeave}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Leave Room

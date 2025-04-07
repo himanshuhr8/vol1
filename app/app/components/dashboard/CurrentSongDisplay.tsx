@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Youtube, AirplayIcon as Spotify } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useMusicStore } from "@/app/store/currentSong";
+import { toast } from "sonner";
 
 interface YoutubeInterface {
   roomActualId: string;
@@ -58,14 +59,14 @@ const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
               setCurrentlyPlaying(null);
             }
           } catch (error) {
-            console.error("Error fetching next song:", error);
+            toast.error("Error fetching next song");
             setCurrentlyPlaying(null);
           }
         } else {
           setCurrentlyPlaying(data.song); // ✅ safely typed
         }
       } catch (error) {
-        console.error("Error fetching currently playing song:", error);
+        toast.error("Error fetching currently playing song");
         setCurrentlyPlaying(null);
       }
     };

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import RecoilRootWrapper from "./RecoilWrapper";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>{children}</Providers>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
