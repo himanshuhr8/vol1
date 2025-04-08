@@ -34,9 +34,7 @@ export function NonHostDropdown() {
           `/api/user/non-host?userId=${session.user.id}`
         );
         setRooms(res.data.joinedRooms);
-      } catch (error) {
-        console.error("Failed to fetch joined rooms");
-      }
+      } catch {}
     };
 
     fetchJoinedRooms();
