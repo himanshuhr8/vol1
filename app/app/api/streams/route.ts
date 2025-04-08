@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prismaClient } from "@/app/lib/db";
-
-import youtubesearchapi from "youtube-search-api";
 import { broken_cat } from "@/public/utils";
+
 const YT_REGEX =
   /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 
@@ -12,6 +11,8 @@ const CreateStreamSchema = z.object({
   roomId: z.string(),
   url: z.string(),
 });
+
+const YT_API_KEY = process.env.YOUTUBE_API_KEY!;
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
         { status: 411 }
       );
     }
+
     const { userId, url, roomId } = data.data;
     const isYtUrl = url.match(YT_REGEX);
     if (!isYtUrl) {
@@ -30,35 +32,49 @@ export async function POST(req: NextRequest) {
         { status: 411 }
       );
     }
-    const extractedId = url.split("?v=")[1];
 
-    const res = await youtubesearchapi.GetVideoDetails(extractedId);
-    console.log(res);
-    console.log(res.thumbnail.thumbnails);
-    const thumbnails = res.thumbnail.thumbnails;
-    thumbnails.sort((a: { width: number }, b: { width: number }) =>
-      a.width < b.width ? -1 : 1
+    const extractedId = isYtUrl[1]; // grab the video ID from regex match
+    const ytRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${extractedId}&key=${YT_API_KEY}`
     );
-    console.log(thumbnails);
+    const ytData = await ytRes.json();
+
+    if (!ytData.items || ytData.items.length === 0) {
+      return NextResponse.json(
+        { error: "Video not found on YouTube" },
+        { status: 404 }
+      );
+    }
+
+    const snippet = ytData.items[0].snippet;
+    // console.log(snippet);
+    const thumbnails = snippet.thumbnails;
+
+    const smallImg =
+      thumbnails.medium?.url || thumbnails.default?.url || broken_cat;
+
+    const bigImg =
+      thumbnails.maxres?.url ||
+      thumbnails.high?.url ||
+      thumbnails.standard?.url ||
+      broken_cat;
 
     const stream = await prismaClient.stream.create({
       data: {
-        userId: userId,
-        roomId: roomId,
-        url: url,
-        title: res.title ?? "It broke sadly :(",
-        extractedId: extractedId,
-        smallImg:
-          (thumbnails.length > 1
-            ? thumbnails[thumbnails.length - 2].url
-            : thumbnails[thumbnails.length - 1].url) ?? broken_cat,
-        bigImg: thumbnails[thumbnails.length - 1].url ?? broken_cat,
+        userId,
+        roomId,
+        url,
+        title: snippet.title ?? "Unknown Title",
+        extractedId,
+        smallImg,
+        bigImg,
         type: "Youtube",
       },
     });
+
     return NextResponse.json({ message: "Added stream", id: stream.id });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return NextResponse.json(
       { error: "Error while adding a stream" },
       { status: 411 }
