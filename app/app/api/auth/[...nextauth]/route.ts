@@ -1,8 +1,9 @@
 // app/api/auth/[...nextauth]/route.ts
-import NextAuth from "next-auth";
+
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prismaClient } from "@/app/lib/db";
-import { NextAuthOptions } from "next-auth";
+import { NextRequest } from "next/server";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -23,11 +24,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!existingUser) {
           existingUser = await prismaClient.user.create({
-            data: {
-              email: user.email,
-              provider: "Google",
-              name: user.name!,
-            },
+            data: { email: user.email, provider: "Google", name: user.name! },
           });
         }
 
@@ -39,15 +36,6 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
-      }
-      return token;
-    },
-
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
@@ -56,11 +44,22 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+      }
+      return token;
+    },
   },
 };
 
-// ✅ Wrap with handler function for App Router
-const handler = NextAuth(authOptions);
+// ✅ This makes TS happy by explicitly typing the handler as expected by App Router
+const handler = (req: NextRequest, ctx: any) => {
+  return NextAuth(authOptions)(req, ctx);
+};
 
 export const GET = handler;
 export const POST = handler;
