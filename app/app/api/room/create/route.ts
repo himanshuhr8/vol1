@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/authOptions";
 import { prismaClient } from "@/app/lib/db";
 import { nanoid } from "nanoid";
 import { NextRequest, NextResponse } from "next/server";

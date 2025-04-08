@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prismaClient } from "@/app/lib/db";
 import { z } from "zod";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/authOptions";
 import { getServerSession } from "next-auth";
 
 const ReplaySchema = z.object({
