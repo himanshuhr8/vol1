@@ -54,7 +54,7 @@ const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
             );
 
             if (nextRes.status === 200 && nextRes.data?.song) {
-              setCurrentlyPlaying(nextRes.data.song); // ✅ safely typed
+              setCurrentlyPlaying(nextRes.data.song);
             } else {
               setCurrentlyPlaying(null);
             }
@@ -77,7 +77,7 @@ const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
 
     const interval = setInterval(fetchOrStartSong, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [roomActualId]);
 
   if (!currentlyPlaying) return <p>No song is currently playing.</p>;
 
