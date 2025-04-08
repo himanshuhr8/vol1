@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 
 interface JoinRoomResponse {
   room: {
@@ -35,9 +36,9 @@ export default function JoinRoomPage() {
 
       const { room } = res.data;
       router.push(`/room/${room.roomId}`);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || "Failed to join room");
+      toast.error("Failed to join room");
     } finally {
       setLoading(false);
     }

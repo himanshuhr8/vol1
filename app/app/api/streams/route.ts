@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prismaClient } from "@/app/lib/db";
 
-//@ts-expect-error
+// @ts-expect-error: youtube-search-api has no types
 import youtubesearchapi from "youtube-search-api";
 import { broken_cat } from "@/public/utils";
 const YT_REGEX =

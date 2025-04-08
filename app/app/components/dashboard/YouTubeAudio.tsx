@@ -22,12 +22,7 @@ import { toast } from "sonner";
 interface YoutubeInterface {
   roomActualId: string;
 }
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
+
 type Song = {
   id: string;
   userId: string;

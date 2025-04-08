@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import axios from "axios";
+import { toast } from "sonner";
 
 type CreateRoomResponse = {
   room: {
@@ -40,9 +41,9 @@ export default function CreateRoomPage() {
       });
 
       router.push(`/room/${res.data.room.roomId}`);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || "Failed to create room.");
+      toast.error("Failed to create room.");
     } finally {
       setLoading(false);
     }

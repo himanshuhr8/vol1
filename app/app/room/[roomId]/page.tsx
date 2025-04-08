@@ -54,9 +54,11 @@ import CurrentSongDisplay from "@/app/components/dashboard/CurrentSongDisplay";
 export default function RoomDashboard() {
   const params = useParams();
   const { data: session, status } = useSession();
-
+  if (!session?.user?.id) {
+    return null;
+  }
   const roomId = params.roomId as string;
-  const userId = session?.user?.id!;
+  const userId = session.user?.id!;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [newSongUrl, setNewSongUrl] = useState("");
@@ -107,7 +109,6 @@ export default function RoomDashboard() {
   const historySongs = playedSongs.playedSongs;
   const router = useRouter();
   // 🔁 Now conditionally render AFTER hooks
-  if (status === "loading") return <p>Loading...</p>;
   if (!session) return <p>You are not signed in</p>;
 
   // Handle voting

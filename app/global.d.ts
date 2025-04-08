@@ -2,7 +2,7 @@ export {}; // Ensure it's treated as a module
 
 declare global {
   interface Window {
-    YT: any;
+    YT: typeof YT;
     onYouTubeIframeAPIReady: () => void;
   }
 }
