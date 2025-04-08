@@ -1,5 +1,6 @@
 // types/next-auth.d.ts
-import NextAuth from "next-auth";
+
+export {}; // 👈 ensures this file is treated as a module
 
 declare module "next-auth" {
   interface Session {
@@ -16,6 +17,7 @@ declare module "next-auth" {
     email: string;
   }
 }
+
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
