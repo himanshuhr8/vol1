@@ -99,11 +99,11 @@ export default function RoomDashboard() {
 
   const { roomDetails } = useRoomDetails(roomId);
   const { streams, upVotedSongs, loading } = useStreams(
-    roomDetails?.roomActualId!,
+    roomDetails?.roomActualId,
     userId
   );
 
-  const playedSongs = usePlayedSongs(roomDetails?.roomActualId!);
+  const playedSongs = usePlayedSongs(roomDetails?.roomActualId);
   const historySongs = playedSongs.playedSongs;
   const router = useRouter();
   // 🔁 Now conditionally render AFTER hooks
@@ -120,8 +120,8 @@ export default function RoomDashboard() {
       if (res.status === 200) {
         incrementKey(); // Refresh streams after voting
       }
-    } catch (e: any) {
-      alert(`Error: ${e.response?.data?.error || "Unknown error"}`);
+    } catch (e) {
+      toast.error("Error while voting!");
     }
   };
 
@@ -137,8 +137,8 @@ export default function RoomDashboard() {
       setNewSongUrl("");
       setIsAddingSong(false);
       incrementKey(); // Refresh streams after adding a song
-    } catch (e: any) {
-      alert(`Error: ${e.response?.data?.error || "Unknown error"}`);
+    } catch (e) {
+      toast.error("Error while Adding");
     }
   };
   const handleHistoryButton = () => {
@@ -338,7 +338,7 @@ export default function RoomDashboard() {
           {isOwner ? (
             <YouTubeAudioPlayer roomActualId={roomDetails?.roomActualId} />
           ) : (
-            <CurrentSongDisplay roomActualId={roomDetails?.roomActualId!} />
+            <CurrentSongDisplay roomActualId={roomDetails?.roomActualId} />
           )}
 
           {/* Queue and Chat Tabs */}
