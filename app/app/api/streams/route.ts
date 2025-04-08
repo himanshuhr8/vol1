@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     thumbnails.sort((a: { width: number }, b: { width: number }) =>
       a.width < b.width ? -1 : 1
     );
-    // console.log(thumbnails);
+    console.log(thumbnails);
 
     const stream = await prismaClient.stream.create({
       data: {
