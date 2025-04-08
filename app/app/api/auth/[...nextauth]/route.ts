@@ -1,6 +1,8 @@
-import { prismaClient } from "@/app/lib/db";
-import NextAuth, { NextAuthOptions } from "next-auth";
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { prismaClient } from "@/app/lib/db";
+import { NextAuthOptions } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -21,27 +23,20 @@ export const authOptions: NextAuthOptions = {
 
         if (!existingUser) {
           existingUser = await prismaClient.user.create({
-            data: { email: user.email, provider: "Google", name: user.name! },
+            data: {
+              email: user.email,
+              provider: "Google",
+              name: user.name!,
+            },
           });
         }
 
-        // 👇 Attach ID to user so jwt gets it
         user.id = existingUser.id;
-
         return true;
       } catch (error) {
         console.error("Error during sign-in:", error);
         return false;
       }
-    },
-
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.name = token.name as string;
-        session.user.email = token.email as string;
-      }
-      return session;
     },
 
     async jwt({ token, user }) {
@@ -52,9 +47,20 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+      }
+      return session;
+    },
   },
 };
 
+// ✅ Wrap with handler function for App Router
 const handler = NextAuth(authOptions);
 
-export { handler as GET, handler as POST };
+export const GET = handler;
+export const POST = handler;
