@@ -53,7 +53,7 @@ import CurrentSongDisplay from "@/app/components/dashboard/CurrentSongDisplay";
 
 export default function RoomDashboard() {
   const params = useParams();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const roomId = params.roomId as string;
   const userId = session?.user?.id!;
