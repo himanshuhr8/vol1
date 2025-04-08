@@ -10,7 +10,8 @@ import { Fotter } from "./components/home/Fotter";
 import { How_it_works } from "./components/home/How_it_works";
 import { Features } from "./components/home/Features";
 import { Home } from "./components/home/Home";
-import { MyRoomDropdown } from "./components/home/MyRoomDropdown";
+import { HostDropdown } from "./components/home/HostDropdown";
+import { NonHostDropdown } from "./components/home/NonHostDropdown";
 
 export default function LandingPage() {
   return (
@@ -42,7 +43,8 @@ export default function LandingPage() {
         </nav>
         <div className="flex gap-4 items-center">
           <ThemeToggle />
-          <MyRoomDropdown />
+          <HostDropdown />
+          <NonHostDropdown />
           <Authenticate_Button />
         </div>
       </header>

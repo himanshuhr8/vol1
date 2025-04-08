@@ -17,7 +17,7 @@ type RoomResponse = {
   roomName: string;
 };
 
-export function MyRoomDropdown() {
+export function HostDropdown() {
   const { data: session } = useSession();
   const [room, setRoom] = useState<{ roomId: string; roomName: string } | null>(
     null
@@ -29,7 +29,7 @@ export function MyRoomDropdown() {
 
       try {
         const res = await axios.get<RoomResponse>(
-          `/api/user?userId=${session.user.id}`
+          `/api/user/host?userId=${session.user.id}`
         );
         setRoom(res.data);
       } catch {
