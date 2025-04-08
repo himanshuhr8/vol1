@@ -2,7 +2,9 @@ import { NextRequest } from "next/server";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prismaClient } from "@/app/lib/db";
-
+type AuthContext = {
+  params: Record<string, string | string[]>;
+};
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -54,7 +56,7 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-const handler = (req: NextRequest, ctx: { params: {} }) => {
+const handler = (req: NextRequest, ctx: AuthContext) => {
   return NextAuth(authOptions)(req, ctx);
 };
 
