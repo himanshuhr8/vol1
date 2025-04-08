@@ -121,6 +121,7 @@ export default function RoomDashboard() {
         incrementKey(); // Refresh streams after voting
       }
     } catch (e) {
+      console.log(e);
       toast.error("Error while voting!");
     }
   };
@@ -138,6 +139,7 @@ export default function RoomDashboard() {
       setIsAddingSong(false);
       incrementKey(); // Refresh streams after adding a song
     } catch (e) {
+      console.log(e);
       toast.error("Error while Adding");
     }
   };
