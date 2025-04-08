@@ -147,6 +147,7 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
             }
           }, 1000);
           setIntervalId(id);
+          setIsPlaying(!isPlaying);
         },
         onStateChange: (event: YT.OnStateChangeEvent) => {
           if (event.data === window.YT.PlayerState.ENDED) {

@@ -56,7 +56,7 @@ export default function RoomDashboard() {
   const { data: session } = useSession();
 
   const roomId = params.roomId as string;
-  const userId = session?.user?.id!;
+  const userId = session?.user?.id;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [newSongUrl, setNewSongUrl] = useState("");
@@ -78,7 +78,7 @@ export default function RoomDashboard() {
         await axios.get("/api/room/details", {
           params: { roomId },
         });
-      } catch (err: any) {
+      } catch (err) {
         if (err.response?.status === 404) {
           toast.error("Room has been closed by the host.");
           router.push("/");
@@ -187,7 +187,7 @@ export default function RoomDashboard() {
 
   const isOwner = roomDetails?.roomOwner === userId;
   const filteredSongs = streams;
-  if (!session?.user?.id) {
+  if (!userId) {
     return <p>You are not signed in</p>;
   }
   return (
