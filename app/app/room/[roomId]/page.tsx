@@ -54,11 +54,9 @@ import CurrentSongDisplay from "@/app/components/dashboard/CurrentSongDisplay";
 export default function RoomDashboard() {
   const params = useParams();
   const { data: session, status } = useSession();
-  if (!session?.user?.id) {
-    return null;
-  }
+
   const roomId = params.roomId as string;
-  const userId = session.user?.id!;
+  const userId = session?.user?.id!;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [newSongUrl, setNewSongUrl] = useState("");
@@ -189,6 +187,9 @@ export default function RoomDashboard() {
 
   const isOwner = roomDetails?.roomOwner === userId;
   const filteredSongs = streams;
+  if (!session?.user?.id) {
+    return <p>You are not signed in</p>;
+  }
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}

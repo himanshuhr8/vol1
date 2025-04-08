@@ -22,7 +22,12 @@ import { toast } from "sonner";
 interface YoutubeInterface {
   roomActualId: string;
 }
-
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 type Song = {
   id: string;
   userId: string;
@@ -44,8 +49,7 @@ type Song = {
 
 const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
   const { currentlyPlaying, setCurrentlyPlaying } = useMusicStore();
-  const [player, setPlayer] = useState<YT.Player | null>(null);
-
+  const [player, setPlayer] = useState<any>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [volume, setVolume] = useState<number>(50);
