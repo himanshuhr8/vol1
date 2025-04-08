@@ -22,12 +22,7 @@ import { toast } from "sonner";
 interface YoutubeInterface {
   roomActualId: string;
 }
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
+
 type Song = {
   id: string;
   userId: string;
@@ -134,18 +129,17 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
       width: "0",
       videoId: videoId,
       playerVars: {
-        autoplay: 0,
-        controls: 0,
+        autoplay: 1,
+        controls: 1,
         modestbranding: 1,
         fs: 0,
         rel: 0,
       },
       events: {
-        onReady: (event: any) => {
+        onReady: (event: YT.PlayerEvent) => {
           setPlayer(event.target);
           setVideoDuration(event.target.getDuration());
 
-          // Start progress tracking
           const id = setInterval(() => {
             if (event.target && event.target.getCurrentTime) {
               const currentTime = event.target.getCurrentTime();
@@ -154,7 +148,7 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
           }, 1000);
           setIntervalId(id);
         },
-        onStateChange: (event: any) => {
+        onStateChange: (event: YT.OnStateChangeEvent) => {
           if (event.data === window.YT.PlayerState.ENDED) {
             setIsPlaying(false);
             if (intervalId) clearInterval(intervalId);
