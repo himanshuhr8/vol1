@@ -1,9 +1,7 @@
-// app/api/auth/[...nextauth]/route.ts
-
+import { NextRequest } from "next/server";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prismaClient } from "@/app/lib/db";
-import { NextRequest } from "next/server";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -56,8 +54,7 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-// ✅ This makes TS happy by explicitly typing the handler as expected by App Router
-const handler = (req: NextRequest, ctx: any) => {
+const handler = (req: NextRequest, ctx: { params: {} }) => {
   return NextAuth(authOptions)(req, ctx);
 };
 
