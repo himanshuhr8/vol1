@@ -10,6 +10,7 @@ const CreateStreamSchema = z.object({
   userId: z.string(),
   roomId: z.string(),
   url: z.string(),
+  type: z.enum(["Youtube", "Spotify"]),
 });
 
 const YT_API_KEY = process.env.YOUTUBE_API_KEY!;
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { userId, url, roomId } = data.data;
+    const { userId, url, roomId, type } = data.data;
     const isYtUrl = url.match(YT_REGEX);
     if (!isYtUrl) {
       return NextResponse.json(
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
         extractedId,
         smallImg,
         bigImg,
-        type: "Youtube",
+        type: type,
       },
     });
 

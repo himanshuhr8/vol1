@@ -13,7 +13,6 @@ import {
   ThumbsUp,
   Settings,
   LogOut,
-  Youtube,
   AirplayIcon as Spotify,
   Plus,
   Search,
@@ -22,6 +21,7 @@ import {
   ThumbsDown,
 } from "lucide-react";
 import { toast } from "sonner";
+import { YoutubeIcon } from "@/public/youtubeIcon";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,10 +46,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import useStreams from "@/app/hooks/useStreams";
-import YouTubeAudioPlayer from "@/app/components/dashboard/YouTubeAudio";
+import YouTubeAudioPlayer from "@/app/components/roomDashboard/YouTubeAudio";
 import { usePlayedSongs } from "@/app/hooks/usePlayedSongs";
 import { useRoomDetails } from "@/app/hooks/useRoomDetails";
-import CurrentSongDisplay from "@/app/components/dashboard/CurrentSongDisplay";
+import CurrentSongDisplay from "@/app/components/roomDashboard/CurrentSongDisplay";
 
 export default function RoomDashboard() {
   const params = useParams();
@@ -132,6 +132,7 @@ export default function RoomDashboard() {
       userId: userId,
       url: newSongUrl,
       roomId: roomDetails?.roomActualId,
+      type: "Youtube",
     };
     try {
       await axios.post("/api/streams", payload);
@@ -188,7 +189,9 @@ export default function RoomDashboard() {
   };
 
   const isOwner = roomDetails?.roomOwner === userId;
-  const filteredSongs = streams;
+  const filteredSongs = streams.filter((song) =>
+    song.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   if (!userId) {
     return <p>You are not signed in</p>;
   }
@@ -260,14 +263,16 @@ export default function RoomDashboard() {
                   <div className="flex">
                     <Input
                       readOnly
-                      value={`https://musicroom.app/room/${roomId}`}
+                      value={`https://vol1-hima31.vercel.app/room/${roomId}`}
                       className="rounded-r-none"
                     />
                     <Button
                       variant="secondary"
                       className="rounded-l-none"
                       onClick={() =>
-                        handleCopy(`https://musicroom.app/room/${roomId}`)
+                        handleCopy(
+                          `https://vol1-hima31.vercel.app/room/${roomId}`
+                        )
                       }
                     >
                       Copy
@@ -406,30 +411,18 @@ export default function RoomDashboard() {
                             </div>
 
                             <Tabs defaultValue="youtube" className="w-full">
-                              <TabsList className="grid grid-cols-2 mb-4">
-                                <TabsTrigger
-                                  value="youtube"
-                                  // onClick={() => setNewSongSource("youtube")}
-                                >
-                                  <Youtube className="h-4 w-4 mr-2 text-red-500" />
-                                  YouTube
-                                </TabsTrigger>
-                                <TabsTrigger
-                                  value="spotify"
-                                  // onClick={() => setNewSongSource("spotify")}
-                                >
-                                  <Spotify className="h-4 w-4 mr-2 text-green-500" />
-                                  Spotify
-                                </TabsTrigger>
-                              </TabsList>
                               <TabsContent
                                 value="youtube"
                                 className="space-y-4 mt-2"
                               >
                                 <div className="space-y-2">
-                                  <Label htmlFor="youtube-url">
-                                    YouTube URL
-                                  </Label>
+                                  <div className="flex">
+                                    <Label htmlFor="youtube-url">
+                                      YouTube URL
+                                    </Label>
+
+                                    <YoutubeIcon className="h-4 w-4 ml-2" />
+                                  </div>
                                   <div className="flex gap-2">
                                     <Input
                                       id="youtube-url"
@@ -602,7 +595,7 @@ export default function RoomDashboard() {
                           : "No songs in the queue"}
                       </p>
                     ) : (
-                      streams.map((song) => (
+                      filteredSongs.map((song) => (
                         <div
                           key={song.id}
                           className="flex items-center gap-3 p-3 bg-card rounded-lg border hover:bg-accent/50 transition-colors"
@@ -624,8 +617,8 @@ export default function RoomDashboard() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            {song.type === "youtube" ? (
-                              <Youtube className="h-4 w-4 text-red-500" />
+                            {song.type === "Youtube" ? (
+                              <YoutubeIcon className="h-4 w-4" />
                             ) : (
                               <Spotify className="h-4 w-4 text-green-500" />
                             )}
