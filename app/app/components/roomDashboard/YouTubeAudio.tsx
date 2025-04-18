@@ -47,7 +47,7 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
   const [player, setPlayer] = useState<YT.Player | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-  const [volume, setVolume] = useState<number>(50);
+  const [volume, setVolume] = useState<number>(80);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
@@ -271,8 +271,8 @@ const YouTubeAudioPlayer: React.FC<YoutubeInterface> = ({ roomActualId }) => {
                       if (player) {
                         if (isMuted) {
                           player.unMute();
-                          setVolume(50);
-                          player.setVolume(50);
+                          setVolume(100);
+                          player.setVolume(100);
                         } else {
                           player.mute();
                         }

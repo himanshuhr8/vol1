@@ -6,6 +6,7 @@ import { Youtube, AirplayIcon as Spotify } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useMusicStore } from "@/app/store/currentSong";
 import { toast } from "sonner";
+import { YoutubeIcon } from "@/public/youtubeIcon";
 
 interface YoutubeInterface {
   roomActualId: string;
@@ -95,9 +96,9 @@ const CurrentSongDisplay: React.FC<YoutubeInterface> = ({ roomActualId }) => {
               className="rounded-lg shadow-lg object-cover"
             />
             <div className="absolute top-2 right-2">
-              {currentlyPlaying.type === "youtube" ? (
-                <Badge className="bg-red-500 hover:bg-red-600">
-                  <Youtube className="h-3 w-3 mr-1" />
+              {currentlyPlaying.type === "Youtube" ? (
+                <Badge>
+                  <YoutubeIcon className="h-3 w-3 mr-1" />
                   YouTube
                 </Badge>
               ) : (
