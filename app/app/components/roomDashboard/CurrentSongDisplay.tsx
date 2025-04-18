@@ -2,7 +2,7 @@
 import axios from "axios";
 import { useEffect } from "react";
 import Image from "next/image";
-import { Youtube, AirplayIcon as Spotify } from "lucide-react";
+import { AirplayIcon as Spotify } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useMusicStore } from "@/app/store/currentSong";
 import { toast } from "sonner";
