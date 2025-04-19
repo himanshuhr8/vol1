@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 import { Authenticate_Button } from "./components/home/Authenticate_Button";
 import { Faq } from "./components/home/Faq";
-import { Fotter } from "./components/home/Fotter";
+
 import { How_it_works } from "./components/home/How_it_works";
 import { Features } from "./components/home/Features";
 import { Home } from "./components/home/Home";
@@ -104,7 +104,6 @@ export default function LandingPage() {
           <Faq />
         </section>
       </main>
-      <Fotter />
     </div>
   );
 }
