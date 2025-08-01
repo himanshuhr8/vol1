@@ -38,9 +38,12 @@ yarn
 Create a `.env.local` file in the `app` folder and add:
 
 ```env
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+SECRET=""
+YOUTUBE_API_KEY=
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME
-NEXT_PUBLIC_YOUTUBE_API_KEY=your-youtube-api-key
-NEXTAUTH_SECRET=some-random-secret
+
 ```
 
 > Replace `USER`, `PASSWORD`, `HOST`, `PORT`, and `DATABASE_NAME` with your PostgreSQL credentials.
